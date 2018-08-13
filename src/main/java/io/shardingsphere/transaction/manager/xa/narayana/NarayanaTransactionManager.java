@@ -24,7 +24,7 @@ package io.shardingsphere.transaction.manager.xa.narayana;
 
 import com.arjuna.ats.jta.common.jtaPropertyManager;
 import io.shardingsphere.core.rule.DataSourceParameter;
-import io.shardingsphere.transaction.common.event.TransactionEvent;
+import io.shardingsphere.transaction.event.xa.XATransactionEvent;
 import io.shardingsphere.transaction.manager.xa.XATransactionManager;
 
 import javax.sql.DataSource;
@@ -33,7 +33,7 @@ import javax.transaction.UserTransaction;
 import java.sql.SQLException;
 
 /**
- * @author <a href="mailto:zfeng@redhat.com>Zheng Feng</a>
+ * @author zhfeng
  */
 public class NarayanaTransactionManager implements XATransactionManager {
     private static final UserTransaction USER_TRANSACTION_MANAGER = jtaPropertyManager.getJTAEnvironmentBean().getUserTransaction();
@@ -44,7 +44,7 @@ public class NarayanaTransactionManager implements XATransactionManager {
     }
 
     @Override
-    public void begin(TransactionEvent transactionEvent) throws SQLException {
+    public void begin(XATransactionEvent transactionEvent) throws SQLException {
         try {
             USER_TRANSACTION_MANAGER.begin();
         } catch (Exception e) {
@@ -53,7 +53,7 @@ public class NarayanaTransactionManager implements XATransactionManager {
     }
 
     @Override
-    public void commit(TransactionEvent transactionEvent) throws SQLException {
+    public void commit(XATransactionEvent transactionEvent) throws SQLException {
         try {
             USER_TRANSACTION_MANAGER.commit();
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class NarayanaTransactionManager implements XATransactionManager {
     }
 
     @Override
-    public void rollback(TransactionEvent transactionEvent) throws SQLException {
+    public void rollback(XATransactionEvent transactionEvent) throws SQLException {
         try {
             USER_TRANSACTION_MANAGER.rollback();
         } catch (Exception e) {
