@@ -22,9 +22,11 @@
 
 package io.shardingsphere.transaction.manager.xa.narayana;
 
+import com.arjuna.ats.internal.jta.recovery.arjunacore.XARecoveryModule;
 import com.arjuna.ats.jta.common.jtaPropertyManager;
+import com.arjuna.ats.jta.recovery.XAResourceRecoveryHelper;
+import io.shardingsphere.core.event.transaction.xa.XATransactionEvent;
 import io.shardingsphere.core.rule.DataSourceParameter;
-import io.shardingsphere.transaction.event.xa.XATransactionEvent;
 import io.shardingsphere.transaction.manager.xa.XATransactionManager;
 
 import javax.sql.DataSource;
@@ -37,10 +39,25 @@ import java.sql.SQLException;
  */
 public class NarayanaTransactionManager implements XATransactionManager {
     private static final UserTransaction USER_TRANSACTION_MANAGER = jtaPropertyManager.getJTAEnvironmentBean().getUserTransaction();
+    private static final XARecoveryModule xaRecoveryModule =  XARecoveryModule.getRegisteredXARecoveryModule();
 
     @Override
     public DataSource wrapDataSource(XADataSource dataSource, String dataSourceName, DataSourceParameter dataSourceParameter) throws Exception {
-        return null;
+        DataSource ds = new NarayanaDataSource(dataSource);
+        xaRecoveryModule.addXAResourceRecoveryHelper(getRecoveryHelper(dataSource, dataSourceParameter));
+        return ds;
+    }
+
+    private XAResourceRecoveryHelper getRecoveryHelper(XADataSource xaDataSource, DataSourceParameter dataSourceParameter) {
+        String username = dataSourceParameter.getUsername();
+        String password = dataSourceParameter.getPassword();
+
+        if (username != null && password != null) {
+            return new DataSourceXAResourceRecoveryHelper(xaDataSource, username, password);
+        } else {
+            return new DataSourceXAResourceRecoveryHelper(xaDataSource);
+        }
+
     }
 
     @Override
