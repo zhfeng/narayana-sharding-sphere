@@ -13,8 +13,8 @@
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  See the License for the specific language governing permissions and
  limitations under the License.
- -->
- <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -23,17 +23,18 @@
         <version>3.0.0.M5-SNAPSHOT</version>
     </parent>
     <artifactId>narayana-sharding-transaction</artifactId>
-    <name>${project.artifactId}</name>
+    <name>Narayana Sharding Sphere Integration</name>
+    <version>1.0.0-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>io.shardingsphere</groupId>
             <artifactId>sharding-core</artifactId>
-            <version>${project.version}</version>
+            <version>${version.sharding.sphere}</version>
         </dependency>
         <dependency>
             <groupId>io.shardingsphere</groupId>
             <artifactId>sharding-transaction</artifactId>
-            <version>${project.version}</version>
+            <version>${version.sharding.sphere}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.narayana.jta</groupId>
@@ -50,8 +51,15 @@
             <artifactId>narayana-jts-integration</artifactId>
             <version>${version.org.jboss.narayana}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jboss</groupId>
+            <artifactId>jboss-transaction-spi</artifactId>
+            <version>${version.jboss-transaction-spi}</version>
+        </dependency>
     </dependencies>
     <properties>
         <version.org.jboss.narayana>5.8.2.Final</version.org.jboss.narayana>
+        <version.sharding.sphere>3.0.0.M5-SNAPSHOT</version.sharding.sphere>
+        <version.jboss-transaction-spi>7.6.0.Final</version.jboss-transaction-spi>
     </properties>
 </project>
