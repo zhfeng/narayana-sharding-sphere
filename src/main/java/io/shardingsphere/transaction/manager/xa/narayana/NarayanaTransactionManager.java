@@ -20,27 +20,29 @@ import com.arjuna.ats.internal.jta.recovery.arjunacore.XARecoveryModule;
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
 import com.arjuna.ats.jta.common.jtaPropertyManager;
 import com.arjuna.ats.jta.recovery.XAResourceRecoveryHelper;
-import io.shardingsphere.core.event.transaction.xa.XATransactionEvent;
+import io.shardingsphere.core.constant.DatabaseType;
+import io.shardingsphere.core.exception.ShardingException;
 import io.shardingsphere.core.rule.DataSourceParameter;
-import io.shardingsphere.transaction.manager.xa.XATransactionManager;
+import io.shardingsphere.transaction.core.context.XATransactionContext;
+import io.shardingsphere.transaction.spi.xa.XATransactionManager;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
-import javax.transaction.UserTransaction;
-import java.sql.SQLException;
+import javax.transaction.TransactionManager;
 
 /**
  * @author zhfeng
  */
 @Slf4j
 public class NarayanaTransactionManager implements XATransactionManager {
-    private static final UserTransaction USER_TRANSACTION_MANAGER = jtaPropertyManager.getJTAEnvironmentBean().getUserTransaction();
-    private static final XARecoveryModule xaRecoveryModule =  XARecoveryModule.getRegisteredXARecoveryModule();
+    private static final TransactionManager TRANSACTION_MANAGER = jtaPropertyManager.getJTAEnvironmentBean().getTransactionManager();
+    private static final XARecoveryModule xaRecoveryModule = XARecoveryModule.getRegisteredXARecoveryModule();
     private static final RecoveryManagerService recoveryManagerService = new RecoveryManagerService();
 
 
-    public NarayanaTransactionManager () {
+    public NarayanaTransactionManager() {
         RecoveryManager.delayRecoveryManagerThread();
         recoveryManagerService.create();
         recoveryManagerService.start();
@@ -56,10 +58,16 @@ public class NarayanaTransactionManager implements XATransactionManager {
         recoveryManagerService.destroy();
     }
 
-    public DataSource wrapDataSource(XADataSource dataSource, String dataSourceName, DataSourceParameter dataSourceParameter) throws Exception {
-        DataSource ds = new NarayanaDataSource(dataSource);
-        xaRecoveryModule.addXAResourceRecoveryHelper(getRecoveryHelper(dataSource, dataSourceParameter));
+    @Override
+    public DataSource wrapDataSource(DatabaseType databaseType, XADataSource xaDataSource, String s, DataSourceParameter dataSourceParameter) {
+        DataSource ds = new NarayanaDataSource(xaDataSource);
+        xaRecoveryModule.addXAResourceRecoveryHelper(getRecoveryHelper(xaDataSource, dataSourceParameter));
         return ds;
+    }
+
+    @Override
+    public TransactionManager getUnderlyingTransactionManager() {
+        return TRANSACTION_MANAGER;
     }
 
     private XAResourceRecoveryHelper getRecoveryHelper(XADataSource xaDataSource, DataSourceParameter dataSourceParameter) {
@@ -71,43 +79,29 @@ public class NarayanaTransactionManager implements XATransactionManager {
         } else {
             return new DataSourceXAResourceRecoveryHelper(xaDataSource);
         }
-
     }
 
     @Override
-    public void begin(XATransactionEvent transactionEvent) throws SQLException {
-        try {
-            USER_TRANSACTION_MANAGER.begin();
-        } catch (Exception e) {
-            throw new SQLException(e);
-        }
+    @SneakyThrows
+    public void begin(XATransactionContext xaTransactionContext) throws ShardingException {
+        TRANSACTION_MANAGER.begin();
     }
 
     @Override
-    public void commit(XATransactionEvent transactionEvent) throws SQLException {
-        try {
-            USER_TRANSACTION_MANAGER.commit();
-        } catch (Exception e) {
-            throw new SQLException(e);
-        }
-
+    @SneakyThrows
+    public void commit(XATransactionContext xaTransactionContext) throws ShardingException {
+        TRANSACTION_MANAGER.commit();
     }
 
     @Override
-    public void rollback(XATransactionEvent transactionEvent) throws SQLException {
-        try {
-            USER_TRANSACTION_MANAGER.rollback();
-        } catch (Exception e) {
-            throw new SQLException(e);
-        }
+    @SneakyThrows
+    public void rollback(XATransactionContext xaTransactionContext) throws ShardingException {
+        TRANSACTION_MANAGER.rollback();
     }
 
     @Override
-    public int getStatus() throws SQLException {
-        try {
-            return USER_TRANSACTION_MANAGER.getStatus();
-        } catch (Exception e) {
-            throw new SQLException(e);
-        }
+    @SneakyThrows
+    public int getStatus() throws ShardingException {
+        return TRANSACTION_MANAGER.getStatus();
     }
 }
